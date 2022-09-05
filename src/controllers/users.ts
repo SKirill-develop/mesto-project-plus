@@ -31,6 +31,7 @@ export const getUser = (req: Request, res: Response, next: NextFunction) => {
     .catch((err) => {
       if (err.name === 'CastError') {
         next(new NotFoundError('Пользователь по указанному _id не найден'));
+        return;
       }
       next(err);
     });
