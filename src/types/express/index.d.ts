@@ -7,3 +7,7 @@ declare global {
     }
   }
 }
+
+export interface ServerError extends Error {
+  statusCode: number;
+}

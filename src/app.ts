@@ -2,6 +2,7 @@ import express, { Request, Response, NextFunction } from 'express';
 import mongoose from 'mongoose';
 import usersRoutes from './routes/users';
 import cardsRoutes from './routes/cards';
+import { ServerError } from './types/express';
 
 const { PORT = 3000 } = process.env;
 
@@ -20,7 +21,7 @@ app.use((req: Request, res: Response, next: NextFunction) => {
 app.use('/users', usersRoutes);
 app.use('/cards', cardsRoutes);
 
-app.use((err: any, req: Request, res: Response, next: NextFunction) => {
+app.use((err: ServerError, req: Request, res: Response) => {
   const { statusCode = 500, message } = err;
 
   res.status(statusCode)
