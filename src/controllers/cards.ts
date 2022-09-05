@@ -1,71 +1,76 @@
-import { Request, Response } from "express";
-import Card from "../models/cards";
+import { Request, Response, NextFunction } from 'express';
+import Card from '../models/cards';
+import InvalidDataError from '../errors/invalid-data-error';
+import NotFoundError from '../errors/not-found-error';
 
-export const createCard = (req: any, res: Response) =>
+export const createCard = (req: Request, res: Response, next: NextFunction) => {
   Card.create({
     name: req.body.name,
     link: req.body.link,
     owner: req.user._id,
   })
-    .then((card) => {
-      if (!card) {
-        res.status(400).send({
-          message: "Переданы некорректные данные при создании карточки",
-        });
-      } else {
-        res.send(card);
+    .then((card) => res.send(card))
+    .catch((err) => {
+      if (err.name === 'ValidationError') {
+        next(new InvalidDataError('Переданы некорректные данные при создании карточки'));
+        return;
       }
-    })
-    .catch((err) => res.status(500).send(err));
+      next(err);
+    });
+};
 
-export const getCards = (req: Request, res: Response) =>
+export const getCards = (req: Request, res: Response, next: NextFunction) => {
   Card.find({})
     .then((cards) => res.send(cards))
-    .catch((err) => res.status(400).send(err));
+    .catch(next);
+};
 
-export const deleteCards = (req: Request, res: Response) =>
+export const deleteCards = (req: Request, res: Response, next: NextFunction) => {
   Card.findByIdAndRemove(req.params.cardId)
     .then((card) => {
       if (!card) {
-        res.status(404).send({
-          message: "Карточка с указанным _id не найдена",
-        });
-      } else {
-        res.send({ message: "Карточка удалена" });
+        next(new NotFoundError('Передан несуществующий _id карточки'));
+        return;
       }
+      res.send({ message: 'Карточка удалена' });
     })
-    .catch((err) => res.status(500).send(err));
+    .catch((err) => {
+      if (err.name === 'CastError') {
+        next(new NotFoundError('Карточка по указанному _id не найдена'));
+        return;
+      }
+      next(err);
+    });
+};
 
-export const likeCard = (req: any, res: Response) =>
+export const likeCard = (req: Request, res: Response, next: NextFunction) => {
   Card.findByIdAndUpdate(
     req.params.cardId,
     { $addToSet: { likes: req.user._id } },
-    { new: true }
+    { new: true },
   )
-    .then((card) => {
-      if (!card) {
-        res.status(404).send({
-          message: "Передан несуществующий _id карточки",
-        });
-      } else {
-        res.send(card);
+    .then((card) => res.send(card))
+    .catch((err) => {
+      if (err.name === 'CastError') {
+        next(new NotFoundError('Передан несуществующий _id карточки'));
+        return;
       }
-    })
-    .catch((err) => res.status(400).send(err));
+      next(err);
+    });
+};
 
-export const dislikeCard = (req: any, res: Response) =>
+export const dislikeCard = (req: Request, res: Response, next: NextFunction) => {
   Card.findByIdAndUpdate(
     req.params.cardId,
     { $pull: { likes: req.user._id } },
-    { new: true }
+    { new: true },
   )
-    .then((card) => {
-      if (!card) {
-        res.status(404).send({
-          message: "Передан несуществующий _id карточки",
-        });
-      } else {
-        res.send(card);
+    .then((card) => res.send(card))
+    .catch((err) => {
+      if (err.name === 'CastError') {
+        next(new NotFoundError('Передан несуществующий _id карточки'));
+        return;
       }
-    })
-    .catch((err) => res.status(500).send(err));
+      next(err);
+    });
+};
