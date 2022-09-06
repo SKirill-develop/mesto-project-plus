@@ -1,8 +1,9 @@
 import mongoose from 'mongoose';
+import validator from 'validator';
 
 interface ICard {
-  name: String;
-  link: String;
+  name: string;
+  link: string;
   owner: mongoose.Schema.Types.ObjectId;
   likes: [mongoose.Types.ObjectId];
   createdAt: Date;
@@ -18,6 +19,10 @@ const cardSchema = new mongoose.Schema<ICard>({
   link: {
     type: String,
     required: true,
+    validate: {
+      validator: (v: string) => validator.isURL(v),
+      message: 'Ссылка на картинку не прошла валидацию.',
+    },
   },
   owner: {
     type: mongoose.Schema.Types.ObjectId,

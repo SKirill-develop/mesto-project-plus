@@ -7,8 +7,15 @@ import {
   likeCard,
   dislikeCard,
 } from '../controllers/cards';
+import { method } from '../helpers/validator';
 
 const router = express.Router();
+
+const isValid = celebrate({
+  params: Joi.object().keys({
+    cardId: Joi.string().required().custom(method, 'custom validation'),
+  }),
+})
 
 router.get('/', getCards);
 router.post('/', celebrate({
@@ -18,22 +25,8 @@ router.post('/', celebrate({
   }),
 }), createCard);
 
-router.delete('/:cardId', celebrate({
-  params: Joi.object().keys({
-    cardId: Joi.string().required(),
-  }),
-}), deleteCards);
-
-router.put('/:cardId/likes', celebrate({
-  params: Joi.object().keys({
-    cardId: Joi.string().required(),
-  }),
-}), likeCard);
-
-router.delete('/:cardId/likes', celebrate({
-  params: Joi.object().keys({
-    cardId: Joi.string().required(),
-  }),
-}), dislikeCard);
+router.delete('/:cardId', isValid, deleteCards);
+router.put('/:cardId/likes', isValid, likeCard);
+router.delete('/:cardId/likes', isValid, dislikeCard);
 
 export default router;

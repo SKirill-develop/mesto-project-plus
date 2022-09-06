@@ -1,5 +1,7 @@
 import express from 'express';
 import { celebrate, Joi } from 'celebrate';
+import { method } from '../helpers/validator';
+
 import {
   getUser,
   getUsers,
@@ -15,7 +17,7 @@ router.get('/me', getMe);
 
 router.get('/:userId', celebrate({
   params: Joi.object().keys({
-    userId: Joi.string().required(),
+    userId: Joi.string().required().custom(method, 'custom validation'),
   }),
 }), getUser);
 
