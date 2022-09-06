@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import Card from '../models/cards';
 import InvalidDataError from '../errors/invalid-data-error';
 import NotFoundError from '../errors/not-found-error';
+import ForbiddenError from '../errors/forbidden-error';
 
 export const createCard = (req: Request, res: Response, next: NextFunction) => {
   Card.create({
@@ -32,7 +33,11 @@ export const deleteCards = (req: Request, res: Response, next: NextFunction) => 
         next(new NotFoundError('Передан несуществующий _id карточки'));
         return;
       }
-      res.send({ message: 'Карточка удалена' });
+      if (card.owner === req.user._id) {
+        res.send({ message: 'Карточка удалена' });
+      } else {
+        next(new ForbiddenError('В действии отказано'));
+      }
     })
     .catch((err) => {
       if (err.name === 'CastError') {
