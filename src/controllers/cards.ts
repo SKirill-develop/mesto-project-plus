@@ -27,14 +27,16 @@ export const getCards = (req: Request, res: Response, next: NextFunction) => {
 };
 
 export const deleteCards = (req: Request, res: Response, next: NextFunction) => {
-  Card.findByIdAndRemove(req.params.cardId)
+  Card.findById(req.params.cardId)
     .then((card) => {
       if (!card) {
         next(new NotFoundError('Передан несуществующий _id карточки'));
         return;
       }
       if (card.owner === req.user._id) {
-        res.send({ message: 'Карточка удалена' });
+        card.remove()
+          .then(() => res.send({ message: 'Карточка удалена' }))
+          .catch(next);
       } else {
         next(new ForbiddenError('В действии отказано'));
       }
@@ -54,7 +56,13 @@ export const likeCard = (req: Request, res: Response, next: NextFunction) => {
     { $addToSet: { likes: req.user._id } },
     { new: true },
   )
-    .then((card) => res.send(card))
+    .then((card) => {
+      if (!card) {
+        next(new NotFoundError('Карточка по указанному _id не найдена'));
+      } else {
+        res.send(card);
+      }
+    })
     .catch((err) => {
       if (err.name === 'CastError') {
         next(new NotFoundError('Передан несуществующий _id карточки'));
@@ -70,7 +78,13 @@ export const dislikeCard = (req: Request, res: Response, next: NextFunction) => 
     { $pull: { likes: req.user._id } },
     { new: true },
   )
-    .then((card) => res.send(card))
+    .then((card) => {
+      if (!card) {
+        next(new NotFoundError('Карточка по указанному _id не найдена'));
+      } else {
+        res.send(card);
+      }
+    })
     .catch((err) => {
       if (err.name === 'CastError') {
         next(new NotFoundError('Передан несуществующий _id карточки'));

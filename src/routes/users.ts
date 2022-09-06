@@ -1,6 +1,6 @@
 import express from 'express';
 import { celebrate, Joi } from 'celebrate';
-import { method } from '../helpers/validator';
+import method from '../helpers/validator';
 
 import {
   getUser,

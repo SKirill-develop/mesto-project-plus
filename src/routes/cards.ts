@@ -7,7 +7,7 @@ import {
   likeCard,
   dislikeCard,
 } from '../controllers/cards';
-import { method } from '../helpers/validator';
+import method from '../helpers/validator';
 
 const router = express.Router();
 
@@ -15,7 +15,7 @@ const isValid = celebrate({
   params: Joi.object().keys({
     cardId: Joi.string().required().custom(method, 'custom validation'),
   }),
-})
+});
 
 router.get('/', getCards);
 router.post('/', celebrate({
